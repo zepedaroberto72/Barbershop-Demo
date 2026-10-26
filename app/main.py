@@ -320,16 +320,18 @@ def login_page(request: Request):
     if AUTH_DISABLED or request.session.get("user_id"):
         return RedirectResponse(url="/", status_code=303)
     return templates.TemplateResponse(
+        request,
         "login.html",
-        {"request": request, "email_configured": email_configured()},
+        {"email_configured": email_configured()},
     )
 
 
 @app.get("/reset-password", response_class=HTMLResponse)
 def reset_password_page(request: Request):
     return templates.TemplateResponse(
+        request,
         "reset_password.html",
-        {"request": request, "token": request.query_params.get("token", "")},
+        {"token": request.query_params.get("token", "")},
     )
 
 
@@ -339,9 +341,9 @@ def book_page(request: Request, db: Session = Depends(get_db)):
     """Public customer booking site (no staff login). Same appointment records as Scheduling."""
     hold_minutes = get_booking_hold_minutes(db)
     return templates.TemplateResponse(
+        request,
         "book.html",
         {
-            "request": request,
             "business_name": BUSINESS_NAME,
             "booking_hold_minutes": hold_minutes,
             "shop": {
@@ -472,9 +474,9 @@ def delete_service(
 def privacy_page(request: Request):
     """Public Privacy Policy (Twilio A2P / customer disclosure). No staff login."""
     return templates.TemplateResponse(
+        request,
         "legal.html",
         {
-            "request": request,
             "doc": "privacy",
             "page_title": "Privacy Policy",
             "business_name": BUSINESS_NAME,
@@ -487,9 +489,9 @@ def privacy_page(request: Request):
 def terms_page(request: Request):
     """Public Terms and Conditions (Twilio A2P / customer disclosure). No staff login."""
     return templates.TemplateResponse(
+        request,
         "legal.html",
         {
-            "request": request,
             "doc": "terms",
             "page_title": "Terms and Conditions",
             "business_name": BUSINESS_NAME,
@@ -506,9 +508,9 @@ def _interested_page(
     form_values: Optional[dict] = None,
 ):
     return templates.TemplateResponse(
+        request,
         "interested.html",
         {
-            "request": request,
             "business_name": BUSINESS_NAME,
             "success": success,
             "error": error,
@@ -611,9 +613,9 @@ def interested_submit(
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "business_name": BUSINESS_NAME,
             "shop_address": SHOP_ADDRESS,
             "defaults": {
