@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{{ page_title }} — {{ business_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css?v=145" />
+  </head>
+  <body class="legal-page">
+    <header class="legal-top">
+      <a class="legal-brand" href="/book">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <p class="logo">{{ business_name }}</p>
+      </a>
+      <nav class="legal-nav" aria-label="Legal">
+        <a href="/privacy"{% if doc == "privacy" %} aria-current="page"{% endif %}>Privacy</a>
+        <a href="/terms"{% if doc == "terms" %} aria-current="page"{% endif %}>Terms</a>
+        <a href="/book">Book</a>
+      </nav>
+    </header>
+
+    <main class="legal-shell">
+      <article class="legal-panel">
+        {% if doc == "privacy" %}
+        <h1>Privacy Policy</h1>
+        <p class="legal-updated">Last updated: October 21, 2026</p>
+        <p>
+          This Privacy Policy explains how <strong>{{ business_name }}</strong>
+          (“we,” “us,” or “our”) collects, uses, and protects information when you
+          book a service, receive appointment or invoice messages, or otherwise
+          use our scheduling tools.
+        </p>
+
+        <h2>Information we collect</h2>
+        <p>Depending on how you use our services, we may collect:</p>
+        <ul>
+          <li>Name</li>
+          <li>Phone number</li>
+          <li>Email address</li>
+          <li>Service address</li>
+          <li>Appointment details (date, time, appliance, job type, issue description)</li>
+          <li>Invoice and payment-related information needed to complete your repair job</li>
+        </ul>
+
+        <h2>How we use your information</h2>
+        <p>We use this information to:</p>
+        <ul>
+          <li>Schedule and confirm service appointments</li>
+          <li>Dispatch technicians and perform repairs</li>
+          <li>Send transactional SMS and email about appointments, reminders, status updates, and invoices</li>
+          <li>Respond to your questions and provide customer support</li>
+          <li>Maintain business records needed to operate our repair desk</li>
+        </ul>
+        <p>
+          We do not sell or share your SMS opt-in data or personal information with third parties for marketing purposes.
+        </p>
+
+        <h2>Text messages (SMS)</h2>
+        <p>
+          If you provide a phone number when booking, you may receive transactional
+          SMS messages related to your appointment or invoice (for example,
+          confirmations, reminders, or billing notices). Message frequency varies
+          based on your service. Message and data rates may apply.
+        </p>
+        <ul>
+          <li>Reply <strong>STOP</strong> to cancel SMS messages.</li>
+          <li>Reply <strong>HELP</strong> for help.</li>
+        </ul>
+        <p>
+          Carrier message delivery is not guaranteed. Opting out of SMS does not
+          cancel your appointment; contact us directly if you need to reschedule
+          or cancel a visit.
+        </p>
+
+        <h2>Email</h2>
+        <p>
+          We may send transactional email related to your booking, password reset
+          (for staff accounts), or invoices when email delivery is configured.
+        </p>
+
+        <h2>Service providers</h2>
+        <p>
+          We use trusted vendors to operate our systems (for example, SMS and
+          email delivery providers). These providers process information only as
+          needed to send transactional messages or host the application on our
+          behalf—not for their own marketing.
+        </p>
+
+        <h2>Data retention</h2>
+        <p>
+          We keep appointment and invoice records for as long as needed to provide
+          service, meet legal or accounting requirements, and resolve disputes.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          Questions about this Privacy Policy or your information:
+          <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+          ({{ business_name }}).
+        </p>
+        {% else %}
+        <h1>Terms and Conditions</h1>
+        <p class="legal-updated">Last updated: October 21, 2026</p>
+        <p>
+          These Terms and Conditions govern your use of
+          <strong>{{ business_name }}</strong> booking and related messaging
+          services. By booking an appointment or providing your contact details,
+          you agree to these terms.
+        </p>
+
+        <h2>Services</h2>
+        <p>
+          {{ business_name }} provides appliance repair scheduling and related
+          customer communications. Booking online or by phone requests a service
+          visit; confirmation depends on technician availability and our
+          acceptance of the job.
+        </p>
+
+        <h2>Transactional SMS and email</h2>
+        <p>
+          Messages from {{ business_name }} about bookings and invoices are
+          <strong>transactional</strong>—they relate to your appointment or
+          service account, not advertising campaigns.
+        </p>
+        <ul>
+          <li>
+            You opt in to transactional SMS by providing your phone number when
+            booking or requesting service.
+          </li>
+          <li>Reply <strong>STOP</strong> to cancel SMS messages.</li>
+          <li>Reply <strong>HELP</strong> for help.</li>
+          <li>Message and data rates may apply.</li>
+        </ul>
+
+        <h2>Appointments</h2>
+        <p>
+          Please provide accurate contact and address information. Arrival windows
+          may vary due to traffic, prior jobs, or parts availability. Contact us
+          promptly if you need to reschedule or cancel.
+        </p>
+
+        <h2>Pricing and invoices</h2>
+        <p>
+          Estimates and invoices reflect the work performed and parts used.
+          Final charges may differ from initial estimates when additional repair
+          is needed and approved. Payment is due as stated on your invoice.
+        </p>
+
+        <h2>Liability</h2>
+        <p>
+          We perform repairs with reasonable care. To the fullest extent allowed
+          by law, {{ business_name }} is not liable for indirect, incidental, or
+          consequential damages arising from scheduling delays, parts
+          unavailability, or issues outside our reasonable control. Nothing in
+          these terms limits rights you cannot waive under applicable law.
+        </p>
+
+        <h2>Changes</h2>
+        <p>
+          We may update these terms from time to time. The “Last updated” date
+          above reflects the latest revision. Continued use of our booking or
+          messaging services after changes means you accept the updated terms.
+        </p>
+
+        <h2>Contact</h2>
+        <p>
+          Questions about these Terms:
+          <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>
+          ({{ business_name }}).
+        </p>
+        {% endif %}
+      </article>
+    </main>
+
+    <footer class="site-legal-footer">
+      <a href="/privacy">Privacy Policy</a>
+      <span aria-hidden="true">·</span>
+      <a href="/terms">Terms and Conditions</a>
+      <span aria-hidden="true">·</span>
+      <a href="/interested">Want this for your shop?</a>
+    </footer>
+  </body>
+</html>

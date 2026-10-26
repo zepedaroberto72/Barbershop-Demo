@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Want this for your shop? — {{ business_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/book.css?v=275" />
+  </head>
+  <body class="sq-interest-page">
+    <main class="sq-interest">
+      {% if success %}
+      <div class="sq-interest-panel" role="status">
+        <a class="sq-back" href="/book">← Back</a>
+        <h1>Thanks For Reaching Out</h1>
+        <p class="sq-interest-lead">
+          We’ll get back to you soon.
+        </p>
+        <p class="sq-interest-actions">
+          <a class="sq-btn sq-btn-primary" href="/book">Back To Booking</a>
+        </p>
+      </div>
+      {% else %}
+      <div class="sq-interest-panel">
+        <a class="sq-back" href="/book">← Back</a>
+        <h1>Want this for your shop?</h1>
+        <p class="sq-interest-lead">
+          Leave your details and we’ll get back to you.
+        </p>
+
+        {% if error %}
+        <p class="sq-error" role="alert">{{ error }}</p>
+        {% endif %}
+
+        <p class="sq-required-note">
+          <abbr class="sq-req" title="Required">*</abbr> Required fields
+        </p>
+
+        <form class="sq-interest-form" method="post" action="/interested" novalidate>
+          <label class="sq-field">
+            <span>Name <span class="sq-req" aria-hidden="true">*</span></span>
+            <input
+              type="text"
+              name="name"
+              autocomplete="name"
+              required
+              maxlength="120"
+              value="{{ form.name }}"
+            />
+          </label>
+
+          <div class="sq-row-2">
+            <label class="sq-field">
+              <span>Email <span class="sq-req" aria-hidden="true">*</span></span>
+              <input
+                type="email"
+                name="email"
+                autocomplete="email"
+                inputmode="email"
+                required
+                maxlength="255"
+                value="{{ form.email }}"
+              />
+            </label>
+            <label class="sq-field">
+              <span>Phone <span class="sq-req" aria-hidden="true">*</span></span>
+              <input
+                type="tel"
+                name="phone"
+                id="interest-phone"
+                autocomplete="tel"
+                inputmode="numeric"
+                required
+                maxlength="12"
+                placeholder="555-555-5555"
+                value="{{ form.phone }}"
+              />
+            </label>
+          </div>
+
+          <label class="sq-field">
+            <span>Business name <span class="sq-optional">(optional)</span></span>
+            <input
+              type="text"
+              name="business_name"
+              autocomplete="organization"
+              maxlength="160"
+              value="{{ form.business_name }}"
+            />
+          </label>
+
+          <label class="sq-field">
+            <span>Message <span class="sq-optional">(optional)</span></span>
+            <textarea
+              name="message"
+              rows="4"
+              maxlength="2000"
+              placeholder="Tell us a bit about your shop or what you’re looking for"
+            >{{ form.message }}</textarea>
+          </label>
+
+          <button type="submit" class="sq-btn sq-btn-primary sq-btn-block">
+            Request Information
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </main>
+
+    <footer class="site-legal-footer">
+      <a href="/privacy">Privacy Policy</a>
+      <span aria-hidden="true">·</span>
+      <a href="/terms">Terms and Conditions</a>
+      <span aria-hidden="true">·</span>
+      <a href="/interested" aria-current="page">Want this for your shop?</a>
+    </footer>
+
+    {% if not success %}
+    <script src="/static/phone-format.js?v=2"></script>
+    <script>
+      if (typeof attachUsPhoneFormat === "function") {
+        attachUsPhoneFormat(document.getElementById("interest-phone"));
+      }
+    </script>
+    {% endif %}
+  </body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Book — {{ business_name }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/book.css?v=275" />
+  </head>
+  <body>
+    <header class="sq-top">
+      <a class="sq-logo-link" href="/book" aria-label="{{ business_name }}">
+        <img
+          class="sq-logo"
+          src="/static/img/logo.png?v=2"
+          alt="{{ business_name }}"
+          width="390"
+          height="346"
+        />
+      </a>
+    </header>
+
+    <!-- Step: Service Menu -->
+    <section class="sq-step" id="step-menu" data-step="menu">
+      <div class="sq-hero">
+        <div class="sq-hero-copy">
+          <h1>Service Menu</h1>
+          <dl class="sq-shop-info">
+            <div class="sq-shop-row">
+              <dt>Hours</dt>
+              <dd id="shop-hours-line"></dd>
+            </div>
+            <div class="sq-shop-row">
+              <dt>Phone</dt>
+              <dd>
+                <a id="shop-phone-link" href="tel:{{ shop.phone }}">{{ shop.phone }}</a>
+              </dd>
+            </div>
+            {% if shop.email %}
+            <div class="sq-shop-row">
+              <dt>Email</dt>
+              <dd><a id="shop-email-link" href="mailto:{{ shop.email }}">{{ shop.email }}</a></dd>
+            </div>
+            {% endif %}
+            <div class="sq-shop-row">
+              <dt>Address</dt>
+              <dd>
+                <a
+                  id="shop-address-link"
+                  href="#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >{{ shop.address }}</a>
+              </dd>
+            </div>
+          </dl>
+        </div>
+        <div class="sq-hero-actions">
+          <button type="button" class="sq-btn sq-btn-ghost" id="hero-my-bookings">Modify Booking</button>
+        </div>
+      </div>
+
+      <div id="menu-services" class="sq-service-grid"></div>
+
+      <section class="sq-location sq-hours-only" aria-label="Business hours">
+        <div class="sq-location-copy">
+          <h2>Business Hours</h2>
+          <table class="sq-hours">
+            <tbody>
+              {% for row in shop.hours %}
+              <tr><td colspan="2">{{ row.day }} {{ row.hours }}</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- Modify Booking lookup -->
+    <section class="sq-step" id="step-lookup" data-step="lookup" hidden>
+      <button type="button" class="sq-back" id="lookup-back">← Back</button>
+      <h1 class="sq-lookup-title">Modify Booking</h1>
+      <p class="sq-lookup-lead">
+        Enter the phone number and the first 4 letters of the last name used when you booked.
+      </p>
+      <form id="lookup-form" class="sq-lookup-form" novalidate>
+        <label class="sq-field">
+          <span>Phone Number</span>
+          <input type="tel" id="lookup-phone" required autocomplete="tel" inputmode="numeric" maxlength="12" placeholder="555-555-5555" />
+        </label>
+        <label class="sq-field">
+          <span>First 4 Letters of Last Name</span>
+          <input
+            type="text"
+            id="lookup-last"
+            required
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="words"
+            spellcheck="false"
+            placeholder="e.g. Smit"
+          />
+        </label>
+        <p class="sq-error" id="lookup-error" hidden></p>
+        <button type="submit" class="sq-btn sq-btn-primary sq-btn-block" id="lookup-submit">Modify Booking</button>
+      </form>
+      <div id="lookup-results" class="sq-lookup-results" hidden></div>
+    </section>
+
+    <!-- Shared flow shell (extras → staff → time → checkout) -->
+    <section class="sq-step sq-flow" id="step-flow" data-step="flow" hidden>
+      <div class="sq-flow-main">
+        <div class="sq-flow-nav">
+          <button type="button" class="sq-back" id="flow-back">← Back</button>
+          <button type="button" class="sq-link sq-start-over" id="flow-start-over">Start over</button>
+        </div>
+
+        <div class="sq-panel" id="panel-extras" hidden>
+          <h1>Add more to your appointment?</h1>
+          <div class="sq-addon-list" id="addon-list"></div>
+        </div>
+
+        <div class="sq-panel" id="panel-staff" hidden>
+          <h1>Select Barber</h1>
+          <div class="sq-staff-list" id="staff-list"></div>
+        </div>
+
+        <div class="sq-panel" id="panel-time" hidden>
+          <h1>Select A Date and Time</h1>
+          <p class="sq-time-lead">Pick a day your barber is available, then choose a time.</p>
+          <div class="sq-cal-nav">
+            <button type="button" class="sq-icon" id="month-prev" aria-label="Previous week">‹</button>
+            <h2 id="month-label">Oct 2026</h2>
+            <button type="button" class="sq-icon" id="month-next" aria-label="Next week">›</button>
+          </div>
+          <div class="sq-week" id="week-strip" role="listbox" aria-label="Week"></div>
+          <p class="sq-tz">Times are shown in your local timezone.</p>
+          <h3 class="sq-day-title" id="day-title"></h3>
+          <p class="sq-duration-note" id="duration-note"></p>
+          <p class="sq-coverage" id="slot-coverage" hidden></p>
+
+          <div class="sq-more-barbers" id="more-barbers-box" hidden>
+            <div class="sq-more-barbers-top">
+              <div class="sq-more-barbers-copy">
+                <strong>Book More Barbers?</strong>
+              </div>
+              <label class="sq-more-toggle">
+                <input type="checkbox" id="book-more-barbers" />
+                <span>Yes</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="sq-barber-filters" id="barber-filters" hidden></div>
+          <div class="sq-picked-slots" id="picked-slots" hidden></div>
+          <div class="sq-slots" id="slot-groups"></div>
+          <p class="sq-empty" id="slots-empty" hidden>No open times this day. Try another date.</p>
+        </div>
+
+        <div class="sq-panel" id="panel-checkout" hidden>
+          <h1>Checkout</h1>
+          <p class="sq-hold" id="checkout-hold">
+            Appointment held for <span id="hold-minutes-label">{{ booking_hold_minutes }}</span> minutes.
+          </p>
+          <div class="sq-checkout-tools">
+            <button type="button" class="sq-link" id="clear-checkout-form">Clear form</button>
+          </div>
+          <form id="checkout-form" class="sq-checkout-form" novalidate>
+            <label class="sq-field">
+              <span>Phone Number <abbr class="sq-req" title="Required">*</abbr></span>
+              <input type="tel" id="co-phone" required autocomplete="tel" inputmode="numeric" maxlength="12" placeholder="555-555-5555" aria-required="true" />
+            </label>
+            <div class="sq-row-2">
+              <label class="sq-field">
+                <span>First Name <abbr class="sq-req" title="Required">*</abbr></span>
+                <input type="text" id="co-first" required autocomplete="given-name" aria-required="true" />
+              </label>
+              <label class="sq-field">
+                <span>Last Name <abbr class="sq-req" title="Required">*</abbr></span>
+                <input type="text" id="co-last" required autocomplete="family-name" aria-required="true" />
+              </label>
+            </div>
+            <label class="sq-field">
+              <span>Email <span class="sq-optional">(optional)</span></span>
+              <input type="email" id="co-email" autocomplete="email" placeholder="name@example.com" />
+            </label>
+            <div class="sq-notes">
+              <div class="sq-notes-head">
+                <h3>Appointment Note</h3>
+                <button type="button" class="sq-link" id="toggle-notes">Add</button>
+              </div>
+              <textarea id="co-notes" rows="3" hidden placeholder="Anything we should know?"></textarea>
+            </div>
+            <p class="sq-error" id="checkout-error" hidden></p>
+          </form>
+        </div>
+
+        <div class="sq-panel" id="panel-done" hidden>
+          <h1>You’re Booked!</h1>
+          <p id="done-copy"></p>
+          <button type="button" class="sq-btn sq-btn-ghost" id="book-another">Book Another</button>
+        </div>
+      </div>
+
+      <aside class="sq-summary" aria-label="Booking Appointment">
+        <h2>Booking Appointment</h2>
+        <div id="summary-when" class="sq-summary-when" hidden></div>
+        <ul class="sq-summary-lines" id="summary-lines"></ul>
+        <div class="sq-summary-totals" id="summary-totals"></div>
+        <button type="button" class="sq-btn sq-btn-primary sq-btn-block" id="summary-next">Next</button>
+      </aside>
+
+      <div class="sq-checkout-footer" id="checkout-footer" hidden>
+        <button type="submit" form="checkout-form" class="sq-btn sq-btn-primary sq-btn-block" id="confirm-book">
+          Book Appointment
+        </button>
+      </div>
+
+      <div class="sq-flow-bar" id="flow-bar" hidden>
+        <div class="sq-flow-bar-meta">
+          <strong id="flow-bar-total">$0.00</strong>
+          <span id="flow-bar-time">0 mins</span>
+        </div>
+        <button type="button" class="sq-btn sq-btn-primary" id="flow-bar-next">Next</button>
+      </div>
+    </section>
+
+    <footer class="site-legal-footer">
+      <a href="/privacy">Privacy Policy</a>
+      <span aria-hidden="true">·</span>
+      <a href="/terms">Terms and Conditions</a>
+      <span aria-hidden="true">·</span>
+      <a href="/interested">Want this for your shop?</a>
+    </footer>
+
+    <script>
+      window.BARBER_BOOK = {
+        businessName: {{ business_name | tojson }},
+        bookingHoldMinutes: {{ booking_hold_minutes | int }},
+        shop: {
+          tagline: {{ shop.tagline | tojson }},
+          address: {{ shop.address | tojson }},
+          phone: {{ shop.phone | tojson }},
+          email: {{ shop.email | tojson }},
+          hours: {{ shop.hours | tojson }},
+          bookingHoldMinutes: {{ booking_hold_minutes | int }},
+        },
+      };
+    </script>
+    <script src="/static/book.js?v=277"></script>
+  </body>
+</html>

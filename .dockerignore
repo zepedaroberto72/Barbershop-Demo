@@ -1,0 +1,16 @@
+.venv
+__pycache__
+*.pyc
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+data/
+*.db
+.DS_Store
+agent-transcripts
+.cursor
+README.md
+**/__pycache__
+**/*.pyc

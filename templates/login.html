@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Sign in — Exclusive Barber Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css?v=164" />
+  </head>
+  <body class="login-page">
+    <main class="login-shell">
+      <div class="login-card">
+        <div class="login-brand">
+          <img
+            class="brand-logo"
+            src="/static/img/logo.png?v=2"
+            alt="Exclusive Barber Studio"
+            width="200"
+            height="54"
+            style="margin: 0 auto 0.65rem; height: 3.25rem; max-width: 12rem"
+          />
+          <h1 class="login-title">Exclusive Barber Studio</h1>
+          <p class="login-lead" id="login-lead" data-i18n="login.lead">Sign in to schedule and manage bookings.</p>
+        </div>
+
+        <form id="login-form" class="login-form" autocomplete="on">
+          <label>
+            <span data-i18n="login.username">Username</span>
+            <input type="text" id="login-username" name="username" required maxlength="80" autocomplete="username" autofocus />
+          </label>
+          <label>
+            <span data-i18n="login.password">Password</span>
+            <input type="password" id="login-password" name="password" required maxlength="200" autocomplete="current-password" />
+          </label>
+          <p class="login-error" id="login-error" hidden role="alert"></p>
+          <button type="submit" class="cta login-submit" data-i18n="login.submit">Sign in</button>
+          <button type="button" class="chip login-forgot-btn" id="show-forgot" data-i18n="login.forgot">Forgot password?</button>
+        </form>
+
+        <form id="forgot-form" class="login-form" hidden>
+          <p class="login-forgot-lead" data-i18n="login.forgotLead">Enter your username or email. We’ll send a reset link if email is configured.</p>
+          <label>
+            <span data-i18n="login.usernameOrEmail">Username or email</span>
+            <input type="text" id="forgot-identity" name="username_or_email" required maxlength="255" autocomplete="username" />
+          </label>
+          <p class="login-error" id="forgot-error" hidden role="alert"></p>
+          <p class="login-ok" id="forgot-ok" hidden role="status"></p>
+          <button type="submit" class="cta login-submit" data-i18n="login.sendReset">Send reset link</button>
+          <button type="button" class="chip login-forgot-btn" id="show-login" data-i18n="login.backToSignIn">Back to sign in</button>
+        </form>
+
+        <p class="login-book-link">
+          <a href="/book" data-i18n="login.bookLink">Book an Appointment</a>
+        </p>
+
+        <p class="site-legal-footer login-legal-footer">
+          <a href="/privacy">Privacy Policy</a>
+          <span aria-hidden="true">·</span>
+          <a href="/terms">Terms and Conditions</a>
+          <span aria-hidden="true">·</span>
+          <a href="/interested">Want this for your shop?</a>
+        </p>
+
+        <label class="login-lang">
+          <span data-i18n="settings.language">Language</span>
+          <select id="login-language">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+          </select>
+        </label>
+      </div>
+    </main>
+    <script>
+      (function () {
+        var EMAIL_OK = {{ "true" if email_configured else "false" }};
+        var I18N = {
+          en: {
+            "login.lead": "Sign in to schedule and manage jobs.",
+            "login.username": "Username",
+            "login.password": "Password",
+            "login.submit": "Sign in",
+            "login.forgot": "Forgot password?",
+            "login.forgotLead": "Enter your username or email. We’ll send a reset link if email is configured.",
+            "login.usernameOrEmail": "Username or email",
+            "login.sendReset": "Send reset link",
+            "login.backToSignIn": "Back to sign in",
+            "login.failed": "Invalid username or password.",
+            "login.resetSent": "If an account matches, a reset email was sent. Check your inbox.",
+            "login.emailOff": "Email is not configured. Ask an admin to reset your password in Settings → Users.",
+            "login.bookLink": "Book an Appointment",
+            "settings.language": "Language",
+          },
+          es: {
+            "login.lead": "Inicie sesión para programar y gestionar trabajos.",
+            "login.username": "Usuario",
+            "login.password": "Contraseña",
+            "login.submit": "Entrar",
+            "login.forgot": "¿Olvidó la contraseña?",
+            "login.forgotLead": "Ingrese su usuario o correo. Enviaremos un enlace si el correo está configurado.",
+            "login.usernameOrEmail": "Usuario o correo",
+            "login.sendReset": "Enviar enlace",
+            "login.backToSignIn": "Volver a iniciar sesión",
+            "login.failed": "Usuario o contraseña incorrectos.",
+            "login.resetSent": "Si hay una cuenta, se envió un correo de restablecimiento. Revise su bandeja.",
+            "login.emailOff": "El correo no está configurado. Pida a un admin restablecer la contraseña en Ajustes → Usuarios.",
+            "login.bookLink": "Agendar una cita",
+            "settings.language": "Idioma",
+          },
+        };
+        function lang() {
+          try {
+            var prefs = JSON.parse(localStorage.getItem("repairDesk.prefs.v1") || "{}");
+            return prefs.language === "es" ? "es" : "en";
+          } catch (e) {
+            return "en";
+          }
+        }
+        function t(key) {
+          var L = lang();
+          return (I18N[L] && I18N[L][key]) || I18N.en[key] || key;
+        }
+        function applyI18n() {
+          document.querySelectorAll("[data-i18n]").forEach(function (el) {
+            el.textContent = t(el.getAttribute("data-i18n"));
+          });
+          document.documentElement.lang = lang();
+          var sel = document.getElementById("login-language");
+          if (sel) sel.value = lang();
+        }
+        applyI18n();
+        document.getElementById("login-language").addEventListener("change", function (e) {
+          try {
+            var prefs = JSON.parse(localStorage.getItem("repairDesk.prefs.v1") || "{}");
+            prefs.language = e.target.value;
+            localStorage.setItem("repairDesk.prefs.v1", JSON.stringify(prefs));
+          } catch (_) {}
+          applyI18n();
+        });
+        function showForgot(on) {
+          document.getElementById("login-form").hidden = !!on;
+          document.getElementById("forgot-form").hidden = !on;
+        }
+        document.getElementById("show-forgot").addEventListener("click", function () {
+          showForgot(true);
+        });
+        document.getElementById("show-login").addEventListener("click", function () {
+          showForgot(false);
+        });
+        document.getElementById("login-form").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var err = document.getElementById("login-error");
+          err.hidden = true;
+          try {
+            var res = await fetch("/api/auth/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify({
+                username: document.getElementById("login-username").value.trim(),
+                password: document.getElementById("login-password").value,
+              }),
+            });
+            if (!res.ok) {
+              var body = {};
+              try { body = await res.json(); } catch (_) {}
+              err.textContent = body.detail || t("login.failed");
+              err.hidden = false;
+              return;
+            }
+            window.location.href = "/";
+          } catch (_) {
+            err.textContent = t("login.failed");
+            err.hidden = false;
+          }
+        });
+        document.getElementById("forgot-form").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          var err = document.getElementById("forgot-error");
+          var ok = document.getElementById("forgot-ok");
+          err.hidden = true;
+          ok.hidden = true;
+          if (!EMAIL_OK) {
+            err.textContent = t("login.emailOff");
+            err.hidden = false;
+            return;
+          }
+          try {
+            var res = await fetch("/api/auth/forgot-password", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "same-origin",
+              body: JSON.stringify({
+                username_or_email: document.getElementById("forgot-identity").value.trim(),
+              }),
+            });
+            var body = {};
+            try { body = await res.json(); } catch (_) {}
+            if (!res.ok || body.ok === false) {
+              err.textContent = body.detail || t("login.emailOff");
+              err.hidden = false;
+              return;
+            }
+            ok.textContent = body.detail || t("login.resetSent");
+            ok.hidden = false;
+          } catch (_) {
+            err.textContent = t("login.emailOff");
+            err.hidden = false;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Exclusive Barber Studio</title>
+    <!-- Hard-refresh (Cmd/Ctrl+Shift+R) after updates so CSS/JS cache-bust loads. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="/static/styles.css?v=196" />
+  </head>
+  <body data-page="scheduling">
+    <div class="app">
+      <header class="header">
+        <div class="header-masthead">
+          <div class="brand">
+            <img
+              class="brand-logo"
+              src="/static/img/logo.png?v=2"
+              alt=""
+              width="180"
+              height="48"
+              onerror="this.hidden=true"
+            />
+            <h1 class="dashboard-title">
+              Exclusive Studio Dashboard
+              <span class="dashboard-title-demo">- DEMO</span>
+            </h1>
+            <p class="logo" data-label="brand" hidden>Exclusive Barber Studio</p>
+          </div>
+          <div class="account-menu" id="account-menu">
+            <span class="account-user" id="account-username" hidden></span>
+            <button type="button" class="chip" id="logout-btn" data-i18n="auth.logout">Log out</button>
+          </div>
+        </div>
+        <nav class="app-nav" aria-label="Main">
+          <a href="#scheduling" class="app-nav-link" data-page="scheduling" data-label="scheduling">Booking</a>
+          <a href="#availability" class="app-nav-link" data-page="availability" data-label="availability">Availability</a>
+          <a href="#jobs" class="app-nav-link nav-mobile-only" data-page="jobs" data-label="jobs">Cuts</a>
+          <a href="#analytics" class="app-nav-link nav-desktop-only" data-page="analytics" data-label="analytics">Analytics</a>
+          <a href="#history" class="app-nav-link nav-desktop-only" data-page="history" data-label="history">History</a>
+          <a href="#settings" class="app-nav-link" data-page="settings" data-label="settings">Settings</a>
+        </nav>
+        <div class="header-actions" id="scheduling-actions">
+          <nav class="day-nav" aria-label="Schedule">
+            <button type="button" class="icon" id="prev-day" aria-label="Previous day" data-i18n-aria="prevDay">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <input type="date" id="day-picker" />
+            <button type="button" class="icon" id="next-day" aria-label="Next day" data-i18n-aria="nextDay">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="schedule-mode-chips" role="group" aria-label="Schedule view">
+              <button type="button" class="chip toggle-chip active" id="today-btn" data-label="today" aria-pressed="true">Today</button>
+              <button type="button" class="chip toggle-chip" id="weekly-btn" data-i18n="label.weekly" aria-pressed="false">Weekly</button>
+              <button type="button" class="chip toggle-chip" id="monthly-btn" data-i18n="label.monthly" aria-pressed="false">Monthly</button>
+            </div>
+          </nav>
+          <button type="button" class="cta" id="new-booking-btn">
+            <span data-label="newBooking">New Booking</span>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 2v10M2 7h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Mobile Cuts hub: Analytics | History (≤1024) -->
+      <div class="jobs-hub-chrome" id="jobs-hub-chrome" hidden>
+        <div class="jobs-mode-chips" role="tablist" aria-label="Cuts">
+          <button type="button" class="chip toggle-chip" role="tab" data-jobs-tab="analytics" data-label="analytics" aria-selected="false">Analytics</button>
+          <button type="button" class="chip toggle-chip" role="tab" data-jobs-tab="history" data-label="history" aria-selected="false">History</button>
+        </div>
+      </div>
+
+      <!-- Booking (internal page id: scheduling) -->
+      <section class="page" id="page-scheduling" data-page="scheduling">
+        <div class="day-board-toolbar" id="day-board-toolbar" hidden>
+          <div class="day-board-toolbar-controls">
+            <div
+              class="day-board-view-toggle"
+              id="day-board-view-toggle"
+              role="group"
+              data-i18n-aria="board.viewModeAria"
+              aria-label="Day board view"
+            >
+              <button
+                type="button"
+                class="chip toggle-chip"
+                data-day-board-view="stacked"
+                aria-pressed="true"
+                data-i18n="board.viewStacked"
+              >
+                Stacked
+              </button>
+              <button
+                type="button"
+                class="chip toggle-chip day-board-view-columns"
+                data-day-board-view="columns"
+                aria-pressed="false"
+                data-i18n="board.viewColumns"
+              >
+                Columns
+              </button>
+              <button
+                type="button"
+                class="chip toggle-chip"
+                data-day-board-view="focus"
+                aria-pressed="false"
+                data-i18n="board.viewFocus"
+              >
+                Focus
+              </button>
+            </div>
+            <nav
+              class="day-board-columns-pager"
+              id="day-board-columns-pager"
+              hidden
+              role="group"
+              data-i18n-aria="board.columnsPagerAria"
+              aria-label="Barber Columns Pages"
+            >
+              <button
+                type="button"
+                class="day-tech-nav icon"
+                id="day-board-columns-prev"
+                data-i18n-aria="board.columnsPrev"
+                aria-label="Previous Barbers"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <span class="day-board-columns-page" id="day-board-columns-page"></span>
+              <button
+                type="button"
+                class="day-tech-nav icon"
+                id="day-board-columns-next"
+                data-i18n-aria="board.columnsNext"
+                aria-label="Next Barbers"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+        <div class="touch-lock-shell board-touch-shell is-unlocked" id="board-shell">
+          <main class="board" id="board"></main>
+        </div>
+      </section>
+
+      <!-- Availability: working hours + blocked days/weeks/months -->
+      <section class="page" id="page-availability" data-page="availability" hidden>
+        <div class="page-intro">
+          <div>
+            <p class="eyebrow" data-i18n="availability.eyebrow">Capacity</p>
+            <h1 class="page-title" data-label="availability">Availability</h1>
+            <p class="page-lead" data-i18n="availability.lead">Set each barber’s working days and hours, and block off days, weeks, or months (PTO and shop closures).</p>
+          </div>
+        </div>
+        <div class="filters-bar panel availability-filters">
+          <div class="availability-mode-chips" role="group" aria-label="Availability view">
+            <button type="button" class="chip toggle-chip active" id="availability-mode-hours" data-avail-mode="hours" data-i18n="availability.modeHours" aria-pressed="true">Hours</button>
+            <button type="button" class="chip toggle-chip" id="availability-mode-week" data-avail-mode="week" data-i18n="label.weekly" aria-pressed="false">Weekly</button>
+            <button type="button" class="chip toggle-chip" id="availability-mode-month" data-avail-mode="month" data-i18n="label.monthly" aria-pressed="false">Monthly</button>
+          </div>
+          <div class="availability-day-nav" id="availability-day-nav" role="group" aria-label="Availability date" hidden>
+            <button type="button" class="icon" id="availability-prev" aria-label="Previous" data-i18n-aria="prevDay">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <input type="date" id="availability-day" aria-label="Date" data-i18n-aria="availability.date" />
+            <button type="button" class="icon" id="availability-next" aria-label="Next" data-i18n-aria="nextDay">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button type="button" class="chip" id="availability-today" data-label="today">Today</button>
+          </div>
+          <label id="availability-tech-filter-wrap">
+            <span data-i18n="board.technician">Barber</span>
+            <select id="availability-tech-filter">
+              <option value="" data-i18n="label.all">All</option>
+            </select>
+          </label>
+          <label id="availability-span-wrap">
+            <span data-i18n="availability.blockAs">Block as</span>
+            <select id="availability-block-span">
+              <option value="day" data-i18n="availability.spanDay">Day</option>
+              <option value="hours" data-i18n="availability.spanHours">Hours</option>
+              <option value="week" data-i18n="availability.spanWeek">Week</option>
+              <option value="month" data-i18n="availability.spanMonth">Month</option>
+            </select>
+          </label>
+          <label id="availability-cal-from-wrap" hidden>
+            <span data-i18n="availability.blockStart">From</span>
+            <input type="time" id="availability-cal-from" value="12:00" />
+          </label>
+          <label id="availability-cal-to-wrap" hidden>
+            <span data-i18n="availability.blockEnd">To</span>
+            <input type="time" id="availability-cal-to" value="14:00" />
+          </label>
+          <div class="availability-filter-actions">
+            <button type="button" class="cta" id="availability-add-block" data-i18n="availability.addBlock">Add block</button>
+            <button type="button" class="chip" id="availability-refresh" data-label="refresh">Refresh</button>
+          </div>
+        </div>
+        <p class="availability-hint" id="availability-cal-hint" hidden data-i18n="availability.calHint">Select a barber, then tap a day to enter From/To hours, or use Add block with Block as above.</p>
+        <div class="availability-list" id="availability-list" aria-live="polite">
+          <p class="status" data-i18n="availability.loading">Loading availability…</p>
+        </div>
+      </section>
+
+      <!-- Analytics -->
+      <section class="page" id="page-analytics" data-page="analytics" hidden>
+        <div class="page-intro analytics-intro">
+          <div>
+            <p class="eyebrow" data-i18n="analytics.eyebrow">Calendar insights</p>
+            <h1 class="page-title" data-label="analytics">Analytics</h1>
+            <p class="page-lead" data-i18n="analytics.lead">Cuts, hours, and mix from live and past appointments.</p>
+          </div>
+        </div>
+        <div class="filters-bar panel analytics-filters">
+          <label id="analytics-tech-filter-wrap">
+            <span data-i18n="analytics.barber">Barber</span>
+            <select id="analytics-tech-filter"></select>
+          </label>
+          <label>
+            <span data-i18n="analytics.range">Range</span>
+            <select id="analytics-preset">
+              <option value="week" data-i18n="analytics.presetWeek">This week</option>
+              <option value="month" data-i18n="analytics.presetMonth">This month</option>
+              <option value="30" data-i18n="analytics.preset30">Last 30 days</option>
+              <option value="90" data-i18n="analytics.preset90">Last 90 days</option>
+              <option value="year" data-i18n="analytics.presetYear">This year</option>
+              <option value="12m" data-i18n="analytics.preset12m">Last 12 months</option>
+              <option value="custom" data-i18n="analytics.presetCustom">Custom</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="analytics.from">From</span>
+            <input type="date" id="analytics-start" />
+          </label>
+          <label>
+            <span data-i18n="analytics.to">To</span>
+            <input type="date" id="analytics-end" />
+          </label>
+          <button type="button" class="chip" id="analytics-refresh" data-label="refresh">Refresh</button>
+        </div>
+        <div class="analytics-summary" id="analytics-summary" aria-live="polite"></div>
+        <div class="analytics-grid" id="analytics-grid">
+          <p class="status">Loading analytics…</p>
+        </div>
+      </section>
+
+      <!-- Invoice builder (nav removed — kept for deep links / print tooling) -->
+      <section class="page" id="page-invoice" data-page="invoice" hidden>
+        <div class="page-intro">
+          <div>
+            <p class="eyebrow" data-i18n="invoice.eyebrow">Billing</p>
+            <h1 class="page-title" data-label="invoice">Invoice</h1>
+            <p class="page-lead" data-i18n="invoice.lead">Pick a day’s appointment or enter details manually, then send or print.</p>
+          </div>
+        </div>
+        <div class="invoice-layout">
+          <div class="invoice-source-head">
+            <h3 data-i18n="invoice.sourceJob">Source job</h3>
+          </div>
+          <div class="invoice-toolbar no-print" id="invoice-toolbar" role="toolbar" aria-label="Invoice actions">
+            <button type="button" class="chip" id="invoice-edit-btn" data-i18n="invoice.clearForm">Clear Form</button>
+            <div class="invoice-accordion" id="invoice-send-wrap">
+              <button
+                type="button"
+                class="chip invoice-accordion-toggle"
+                id="invoice-send-btn"
+                data-i18n="invoice.send"
+                aria-expanded="false"
+                aria-controls="invoice-send-panel"
+              >
+                Send
+                <span class="invoice-accordion-chevron" aria-hidden="true"></span>
+              </button>
+              <div class="invoice-accordion-panel" id="invoice-send-panel" aria-hidden="true">
+                <div class="invoice-accordion-inner invoice-send-actions" id="invoice-send-menu" role="group" aria-label="Send">
+                  <button type="button" class="chip" id="invoice-text" data-i18n="invoice.text">Text</button>
+                  <button type="button" class="chip invoice-chip-primary" id="invoice-email" data-i18n="invoice.email">Email</button>
+                </div>
+              </div>
+            </div>
+            <button type="button" class="chip" id="invoice-print" data-i18n="invoice.print">Print</button>
+            <button type="button" class="chip" id="invoice-save" data-i18n="invoice.save">Save</button>
+            <button type="button" class="chip" id="invoice-export" data-i18n="invoice.export">Export</button>
+          </div>
+          <aside class="panel invoice-source">
+            <label class="no-print">
+              <span data-i18n="invoice.day">Invoice day</span>
+              <input type="date" id="invoice-day" />
+            </label>
+            <label class="no-print">
+              <span data-i18n="board.technician">Barber</span>
+              <select id="invoice-tech-filter">
+                <option value="" data-i18n="label.all">All</option>
+              </select>
+            </label>
+            <div class="invoice-day-block no-print">
+              <p class="invoice-day-list-label" data-i18n="invoice.dayPick">Day’s appointments</p>
+              <div
+                class="invoice-job-list invoice-day-list"
+                id="invoice-day-list"
+                role="listbox"
+                aria-label="Day’s appointments"
+              >
+                <p class="status" data-i18n="invoice.dayPickPlaceholder">Select an appointment…</p>
+              </div>
+              <p class="status invoice-day-empty" id="invoice-day-empty" hidden data-i18n="invoice.dayEmpty">No appointments this day.</p>
+            </div>
+            <div class="invoice-phone-link no-print">
+              <label>
+                <span data-i18n="invoice.phoneLink">Link by phone</span>
+                <input
+                  type="tel"
+                  id="invoice-phone"
+                  inputmode="tel"
+                  autocomplete="tel"
+                  placeholder="xxx-xxx-xxxx"
+                  data-i18n-placeholder="booking.phonePh"
+                />
+              </label>
+              <button type="button" class="chip" id="invoice-phone-find" data-i18n="invoice.phoneFind">Find</button>
+            </div>
+            <p class="field-hint invoice-phone-hint no-print" data-i18n="invoice.phoneHint">Match appointments by customer phone, then pick one to fill the invoice.</p>
+            <button type="button" class="chip invoice-manual-btn no-print" id="invoice-manual-btn" data-i18n="invoice.manualEntry">Enter manually</button>
+            <details class="invoice-browse no-print" id="invoice-browse">
+              <summary data-i18n="invoice.browseMore">Browse more jobs</summary>
+              <div class="filters-bar invoice-filters">
+                <label>
+                  <span data-i18n="analytics.from">From</span>
+                  <input type="date" id="invoice-start" />
+                </label>
+                <label>
+                  <span data-i18n="analytics.to">To</span>
+                  <input type="date" id="invoice-end" />
+                </label>
+                <button type="button" class="chip" id="invoice-date-refresh" data-label="refresh">Refresh</button>
+              </div>
+              <label>
+                <span data-i18n="invoice.search">Search</span>
+                <input type="search" id="invoice-search" placeholder="Customer, phone, appliance…" data-i18n-placeholder="invoice.searchPh" />
+              </label>
+              <div class="invoice-job-list" id="invoice-job-list">
+                <p class="status" data-i18n="invoice.loading">Loading jobs…</p>
+              </div>
+            </details>
+            <details class="invoice-saved no-print" id="invoice-saved">
+              <summary data-i18n="invoice.savedList">Saved invoices</summary>
+              <div class="invoice-job-list" id="invoice-saved-list">
+                <p class="status" data-i18n="invoice.savedEmpty">No saved invoices yet.</p>
+              </div>
+            </details>
+          </aside>
+          <div class="invoice-sheet-wrap" id="invoice-sheet-wrap">
+            <article class="invoice-sheet" id="invoice-sheet" data-mode="job">
+              <header class="invoice-head">
+                <div>
+                  <p class="invoice-brand" data-label="brand">Exclusive Barber Studio</p>
+                  <p class="invoice-sub" data-i18n="invoice.sub">Appliance service · Central Valley</p>
+                </div>
+                <div class="invoice-meta">
+                  <p><strong data-i18n="invoice.docTitle">Invoice</strong></p>
+                  <input type="text" id="invoice-number" class="invoice-field invoice-field-meta" value="—" aria-label="Invoice number" />
+                  <input type="text" id="invoice-date" class="invoice-field invoice-field-meta" value="" aria-label="Invoice date" />
+                </div>
+              </header>
+              <div class="invoice-parties">
+                <div class="invoice-party">
+                  <p class="eyebrow" data-i18n="invoice.billTo">Bill to</p>
+                  <input type="text" id="invoice-customer-name" class="invoice-field invoice-field-strong" data-i18n-placeholder="invoice.customerNamePh" placeholder="Customer name" autocomplete="name" />
+                  <input type="tel" id="invoice-customer-phone" class="invoice-field" data-i18n-placeholder="invoice.phonePh" placeholder="Phone" autocomplete="tel" />
+                  <input type="email" id="invoice-customer-email" class="invoice-field" data-i18n-placeholder="invoice.emailPh" placeholder="Email" autocomplete="email" />
+                  <input type="text" id="invoice-customer-address" class="invoice-field" data-i18n-placeholder="invoice.addressPh" placeholder="Address" autocomplete="street-address" />
+                </div>
+                <div class="invoice-party">
+                  <p class="eyebrow" data-i18n="invoice.service">Job</p>
+                  <input type="text" id="invoice-job-summary" class="invoice-field" data-i18n-placeholder="invoice.servicePh" placeholder="Appliance · job type · date" />
+                  <input type="text" id="invoice-tech" class="invoice-field" data-i18n-placeholder="invoice.techPh" placeholder="Barber" />
+                </div>
+              </div>
+              <section class="invoice-charges" aria-labelledby="invoice-service-heading">
+                <div class="invoice-section-head">
+                  <h3 id="invoice-service-heading" data-i18n="invoice.sectionService">Service</h3>
+                  <p class="invoice-section-sub" data-i18n="invoice.sectionServiceHint">Unit price × hours</p>
+                </div>
+                <table class="invoice-table" id="invoice-service-table">
+                  <colgroup>
+                    <col class="invoice-col-desc" />
+                    <col class="invoice-col-rate" />
+                    <col class="invoice-col-qty" />
+                    <col class="invoice-col-total" />
+                    <col class="invoice-col-actions no-print" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th data-i18n="invoice.desc">Description</th>
+                      <th class="num" data-i18n="invoice.unitPrice">Unit price</th>
+                      <th class="num" data-i18n="invoice.hours">Hours</th>
+                      <th class="num" data-i18n="invoice.lineTotal">Total</th>
+                      <th class="no-print"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoice-service-lines"></tbody>
+                </table>
+                <p class="invoice-section-subtotal"><span data-i18n="invoice.subtotalService">Service subtotal</span> <strong id="invoice-subtotal-service">$0.00</strong></p>
+              </section>
+              <section class="invoice-charges" aria-labelledby="invoice-materials-heading">
+                <div class="invoice-section-head">
+                  <h3 id="invoice-materials-heading" data-i18n="invoice.sectionMaterials">Materials</h3>
+                  <p class="invoice-section-sub" data-i18n="invoice.sectionMaterialsHint">Price × quantity</p>
+                </div>
+                <table class="invoice-table" id="invoice-materials-table">
+                  <colgroup>
+                    <col class="invoice-col-desc" />
+                    <col class="invoice-col-rate" />
+                    <col class="invoice-col-qty" />
+                    <col class="invoice-col-total" />
+                    <col class="invoice-col-actions no-print" />
+                  </colgroup>
+                  <thead>
+                    <tr>
+                      <th data-i18n="invoice.desc">Description</th>
+                      <th class="num" data-i18n="invoice.price">Price</th>
+                      <th class="num" data-i18n="invoice.quantity">Quantity</th>
+                      <th class="num" data-i18n="invoice.lineTotal">Total</th>
+                      <th class="no-print"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoice-material-lines"></tbody>
+                </table>
+                <p class="invoice-section-subtotal"><span data-i18n="invoice.subtotalMaterials">Materials subtotal</span> <strong id="invoice-subtotal-materials">$0.00</strong></p>
+              </section>
+              <div class="invoice-totals">
+                <div class="invoice-notes">
+                  <p class="eyebrow no-print" data-i18n="invoice.notes">Notes</p>
+                  <textarea
+                    id="invoice-notes"
+                    class="invoice-field invoice-notes-field"
+                    rows="2"
+                    placeholder="Thank you for your business."
+                    data-i18n-placeholder="invoice.notesPh"
+                  ></textarea>
+                  <p id="invoice-notes-print" class="invoice-notes-print print-only" hidden></p>
+                </div>
+                <dl class="totals-block">
+                  <div><dt data-i18n="invoice.subtotal">Subtotal</dt><dd id="invoice-subtotal">$0.00</dd></div>
+                  <div class="totals-tax-row">
+                    <dt>
+                      <span data-i18n="invoice.tax">Tax</span>
+                      <span class="invoice-tax-rate-wrap no-print">
+                        (<input
+                          type="number"
+                          id="invoice-tax-rate"
+                          min="0"
+                          max="20"
+                          step="0.25"
+                          value="8.25"
+                          aria-label="Tax rate percent"
+                        /><span class="invoice-tax-pct">%</span>
+                      </span>
+                      <span class="print-only invoice-tax-rate-print">(<span id="invoice-tax-label">8.25</span>%)</span>
+                    </dt>
+                    <dd id="invoice-tax">$0.00</dd>
+                  </div>
+                  <div class="grand"><dt data-i18n="invoice.total">Total</dt><dd id="invoice-total">$0.00</dd></div>
+                </dl>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- History (appointments) -->
+      <section class="page" id="page-history" data-page="history" hidden>
+        <div class="page-intro">
+          <div>
+            <h1 class="page-title" data-label="history">History</h1>
+            <p class="page-lead" data-i18n="history.lead">Completed, cancelled, and cuts before today. Import or export spreadsheets to sync with other software.</p>
+          </div>
+        </div>
+        <div class="filters-bar panel history-filters">
+          <label>
+            <span data-i18n="common.search">Search</span>
+            <input type="search" id="past-search" placeholder="Name, phone, service…" data-i18n-placeholder="history.searchPh" />
+          </label>
+          <label>
+            <span data-i18n="common.status">Status</span>
+            <select id="past-status" class="desk-select-native">
+              <option value="" data-i18n="history.all">All history</option>
+              <option value="completed" data-i18n="status.completed">Completed</option>
+              <option value="cancelled" data-i18n="status.cancelled">Cancelled</option>
+              <option value="scheduled" data-i18n="history.scheduledPast">Scheduled (past days)</option>
+              <option value="confirmed" data-i18n="history.confirmedPast">Confirmed (past days)</option>
+            </select>
+          </label>
+          <label>
+            <span data-i18n="analytics.from">From</span>
+            <input type="date" id="past-start" />
+          </label>
+          <label>
+            <span data-i18n="analytics.to">To</span>
+            <input type="date" id="past-end" />
+          </label>
+          <div class="history-filter-actions">
+            <button type="button" class="chip" id="past-refresh" data-label="refresh">Refresh</button>
+            <button type="button" class="chip" id="past-import" data-i18n="history.import">Import</button>
+            <button type="button" class="chip" id="past-export" data-i18n="history.export">Export</button>
+          </div>
+          <input type="file" id="past-import-file" accept=".xlsx,.xlsm,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden />
+        </div>
+        <div class="past-list" id="past-list">
+          <p class="status">Loading…</p>
+        </div>
+        <nav class="history-pager" id="past-pager" hidden aria-label="History pages" data-i18n-aria="history.pagerAria">
+          <button type="button" class="chip" id="past-prev" data-i18n="history.prev">Previous</button>
+          <span class="history-pager-label" id="past-page-label" aria-live="polite">Page 1 of 1</span>
+          <button type="button" class="chip" id="past-next" data-i18n="history.next">Next</button>
+        </nav>
+      </section>
+
+      <!-- Settings -->
+      <section class="page" id="page-settings" data-page="settings" hidden>
+        <div class="page-intro">
+          <div>
+            <h1 class="page-title" data-label="settings">Settings</h1>
+            <p class="page-lead" id="settings-page-lead" data-i18n="settings.lead">Team, pricing, look, and language — changes apply live.</p>
+          </div>
+        </div>
+
+        <section class="panel team-settings" aria-labelledby="team-settings-title">
+          <details class="settings-fold">
+            <summary class="settings-fold-summary">
+              <span class="settings-fold-title" id="team-settings-title" data-i18n="settings.teamTitle">Team</span>
+              <span class="settings-fold-hint" id="team-settings-hint" data-i18n="settings.teamHint">Each person is a login and a scheduler — pick one to edit.</span>
+            </summary>
+            <div class="settings-fold-body">
+              <label class="team-member-picker admin-only">
+                <span>Barber</span>
+                <select id="team-member-select" class="desk-select-native" aria-label="Select barber"></select>
+              </label>
+              <div id="team-settings-list" class="team-settings-list team-settings-editor"></div>
+              <details class="team-add-details admin-only">
+                <summary data-i18n="settings.addMember">Add team member</summary>
+                <form id="team-add-form" class="team-add-form">
+                  <label>
+                    <span data-i18n="users.username">Username</span>
+                    <input type="text" id="team-add-username" required maxlength="80" autocomplete="off" />
+                  </label>
+                  <label>
+                    <span data-i18n="common.name">Name</span>
+                    <input type="text" id="team-add-name" required maxlength="100" placeholder="Display name" autocomplete="off" data-i18n-placeholder="settings.teamNamePh" />
+                  </label>
+                  <label>
+                    <span data-i18n="users.email">Email</span>
+                    <input type="email" id="team-add-email" required maxlength="255" autocomplete="off" />
+                  </label>
+                  <label>
+                    <span data-i18n="users.phone">Phone</span>
+                    <input type="tel" id="team-add-phone" required maxlength="40" autocomplete="off" />
+                  </label>
+                  <label>
+                    <span data-i18n="users.tempPassword">Temp password</span>
+                    <input type="text" id="team-add-password" required minlength="6" maxlength="200" autocomplete="new-password" />
+                  </label>
+                  <label>
+                    <span data-i18n="users.role">Role</span>
+                    <select id="team-add-role">
+                      <option value="user" data-i18n="users.roleUser">User</option>
+                      <option value="admin" data-i18n="users.roleAdmin">Admin</option>
+                    </select>
+                  </label>
+                  <div class="team-add-color-field">
+                    <span class="team-add-color-label" data-i18n="common.color">Color</span>
+                    <div id="team-add-swatches" class="team-add-swatches"></div>
+                    <input type="hidden" id="team-add-color" value="#0D9488" />
+                  </div>
+                  <label>
+                    <span data-i18n="settings.startLocation">Start location</span>
+                    <input type="text" id="team-add-location" maxlength="255" placeholder="Shop" value="Shop" />
+                  </label>
+                  <button type="submit" class="cta" data-i18n="settings.addMember">Add team member</button>
+                </form>
+              </details>
+              <p class="field-hint" id="team-settings-msg" hidden></p>
+            </div>
+          </details>
+        </section>
+
+        <section class="panel services-settings admin-only" aria-labelledby="services-settings-title">
+          <details class="settings-fold">
+            <summary class="settings-fold-summary">
+              <span class="settings-fold-title" id="services-settings-title">Pricing and Services</span>
+              <span class="settings-fold-hint">Menu shown on the customer /book site. Prices in dollars.</span>
+            </summary>
+            <div class="settings-fold-body">
+              <div id="services-settings-list" class="services-settings-list"></div>
+              <details class="team-add-details">
+                <summary>Add service</summary>
+                <form id="service-add-form" class="service-add-form">
+                  <label>
+                    <span>Name</span>
+                    <input type="text" id="service-add-name" required maxlength="120" />
+                  </label>
+                  <label>
+                    <span>Description</span>
+                    <input type="text" id="service-add-description" maxlength="255" />
+                  </label>
+                  <label>
+                    <span>Duration (min)</span>
+                    <input type="number" id="service-add-duration" min="5" max="480" step="5" value="30" required />
+                  </label>
+                  <label>
+                    <span>Price ($)</span>
+                    <input type="number" id="service-add-price" min="0" step="0.01" value="0" required />
+                  </label>
+                  <button type="submit" class="cta">Add service</button>
+                </form>
+              </details>
+              <label class="shop-hold-field">
+                <span data-i18n="settings.bookingHold">Customer booking hold (min)</span>
+                <input type="number" name="bookingHold" id="pref-booking-hold" min="1" max="60" step="1" value="10" />
+              </label>
+              <p class="field-hint" data-i18n="settings.bookingHoldHint">
+                Shown on checkout (“Appointment held for X minutes”). Applies to the customer /book site.
+              </p>
+              <p class="field-hint" id="services-settings-msg" hidden></p>
+            </div>
+          </details>
+        </section>
+
+        <form id="settings-form" class="settings-grid">
+          <section class="panel">
+            <h3 data-i18n="settings.boardTitle">Board</h3>
+            <label>
+              <span data-i18n="settings.density">Timeline density</span>
+              <select id="pref-density">
+                <option value="comfortable" data-i18n="settings.densityComfortable">Comfortable</option>
+                <option value="compact" data-i18n="settings.densityCompact">Compact</option>
+              </select>
+            </label>
+          </section>
+          <section class="panel">
+            <h3 data-i18n="settings.lookTitle">Look</h3>
+            <label>
+              <span data-i18n="settings.accent">Accent</span>
+              <select id="pref-accent">
+                <option value="neutral" data-i18n="settings.accentNeutral">Neutral</option>
+                <option value="red" data-i18n="settings.accentRed">Red</option>
+                <option value="blue" data-i18n="settings.accentBlue">Blue</option>
+                <option value="teal" data-i18n="settings.accentTeal">Teal</option>
+                <option value="green" data-i18n="settings.accentGreen">Green</option>
+                <option value="amber" data-i18n="settings.accentAmber">Amber</option>
+              </select>
+            </label>
+            <p class="field-hint" data-i18n="settings.persistHint">Changes apply immediately and persist in localStorage.</p>
+          </section>
+          <section class="panel settings-typo-panel">
+            <h3 data-i18n="settings.typoTitle">Typography</h3>
+            <label>
+              <span data-i18n="settings.fontPairing">Font pairing</span>
+              <select id="pref-font-pairing">
+                <option value="workshop">Workshop — Syne + DM Sans</option>
+                <option value="editorial">Editorial — Fraunces + Source Sans</option>
+                <option value="geometric">Geometric — Outfit + Figtree</option>
+                <option value="precision">Precision — Space Grotesk + IBM Plex</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="settings.fontSize">Base size</span>
+              <select id="pref-font-size">
+                <option value="S" data-i18n="settings.sizeS">Small</option>
+                <option value="M" data-i18n="settings.sizeM">Medium</option>
+                <option value="L" data-i18n="settings.sizeL">Large</option>
+              </select>
+            </label>
+            <p class="field-hint font-preview" id="font-preview" aria-live="polite">
+              Preview: headers use the display face; body copy stays readable.
+            </p>
+          </section>
+          <section class="panel settings-language-panel">
+            <h3 data-i18n="settings.languageTitle">Language</h3>
+            <label>
+              <span data-i18n="settings.language">Language</span>
+              <select id="pref-language">
+                <option value="en">English</option>
+                <option value="es">Español</option>
+              </select>
+            </label>
+            <p class="field-hint" data-i18n="settings.languageHint">Applies to navigation, scheduling boards, History, Analytics, Invoice, Settings, booking forms, and common buttons.</p>
+          </section>
+          <div class="form-actions settings-actions">
+            <button type="button" class="chip" id="settings-reset" data-i18n="settings.reset">Reset defaults</button>
+            <button type="submit" class="cta" data-label="save">Save settings</button>
+          </div>
+          <p class="picked" id="settings-saved" hidden data-i18n="settings.saved">Saved.</p>
+        </form>
+      </section>
+
+      <footer class="site-legal-footer">
+        <a href="/privacy">Privacy Policy</a>
+        <span aria-hidden="true">·</span>
+        <a href="/terms">Terms and Conditions</a>
+        <span aria-hidden="true">·</span>
+        <a href="/interested">Want this for your shop?</a>
+      </footer>
+    </div>
+
+    <aside class="drawer" id="drawer" hidden>
+      <div class="drawer-scrim" id="drawer-scrim"></div>
+      <div class="drawer-panel">
+        <div class="drawer-top">
+          <div class="drawer-top-copy">
+            <p class="eyebrow" id="drawer-step-eyebrow">New Booking</p>
+            <h2 id="drawer-step-title">Select Service</h2>
+            <p class="drawer-day" id="drawer-day"></p>
+          </div>
+          <button type="button" class="icon" id="close-drawer" aria-label="Close" data-i18n-aria="common.close">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+
+        <form id="booking-form" class="form staff-book-form">
+          <nav class="staff-book-steps" id="staff-book-steps" aria-label="Booking steps">
+            <button type="button" class="staff-book-step is-active" data-staff-step="service">1. Service</button>
+            <button type="button" class="staff-book-step" data-staff-step="barber">2. Barber</button>
+            <button type="button" class="staff-book-step" data-staff-step="time">3. Time</button>
+            <button type="button" class="staff-book-step" data-staff-step="customer">4. Customer</button>
+          </nav>
+          <p class="staff-book-summary" id="staff-book-summary" hidden></p>
+
+          <!-- Step: Service catalog (same as /book) -->
+          <section class="staff-book-panel" id="staff-panel-service" data-staff-panel="service">
+            <div id="staff-service-list" class="staff-service-list"></div>
+            <p class="field-hint">Pick one or more services. Duration updates automatically.</p>
+          </section>
+
+          <!-- Step: Barber -->
+          <section class="staff-book-panel" id="staff-panel-barber" data-staff-panel="barber" hidden>
+            <h3>Select Barber</h3>
+            <div class="staff-barber-locked" id="staff-barber-locked" hidden>
+              <p class="staff-barber-locked-label">Booking as</p>
+              <p class="staff-barber-locked-name" id="staff-barber-locked-name"></p>
+            </div>
+            <label class="tech-field" id="staff-barber-picker">
+              <span class="field-label">Barber <span class="req" title="Required">*</span></span>
+              <select name="technician_id" id="tech-select">
+                <option value="">Any Barber</option>
+              </select>
+              <span class="field-hint" id="tech-hint">Any Barber shows open times across the team. Pick a barber to filter slots.</span>
+            </label>
+          </section>
+
+          <!-- Step: Date & time -->
+          <section class="staff-book-panel schedule-section" id="staff-panel-time" data-staff-panel="time" hidden>
+            <h3>Select A Date And Time</h3>
+            <label class="schedule-date">
+              <span class="field-label">Date <span class="req" title="Required">*</span></span>
+              <input name="booking_day" id="booking-day" type="date" />
+            </label>
+            <div class="slots-bar">
+              <span id="slots-label">Day Slots</span>
+              <div class="slots-bar-actions">
+                <button type="button" class="chip toggle-chip active" id="slots-available-only" aria-pressed="true" title="Hide Blocked Times">Available Only</button>
+                <button type="button" class="chip" id="view-tech-day">Day View</button>
+                <button type="button" class="chip" id="refresh-slots" data-label="refresh">Refresh</button>
+              </div>
+            </div>
+            <p class="slots-summary" id="slots-summary" hidden></p>
+            <div class="slots" id="slots"></div>
+            <input type="hidden" name="starts_at" id="starts-at" />
+            <p class="picked" id="selected-slot">No Slot Selected</p>
+          </section>
+
+          <!-- Step: Customer -->
+          <section class="staff-book-panel" id="staff-panel-customer" data-staff-panel="customer" hidden>
+            <h3>Customer</h3>
+            <p class="req-legend"><span class="req" aria-hidden="true">*</span> Required fields</p>
+            <label>
+              <span class="field-label">Phone Number <span class="req" title="Required">*</span></span>
+              <input name="customer_phone" type="tel" maxlength="12" placeholder="555-555-5555" autocomplete="tel" inputmode="numeric" />
+            </label>
+            <div class="hint" id="customer-hit" hidden></div>
+            <div class="grid-2">
+              <label>
+                <span class="field-label">First Name <span class="req" title="Required">*</span></span>
+                <input name="customer_first_name" maxlength="60" autocomplete="given-name" />
+              </label>
+              <label>
+                <span class="field-label">Last Name <span class="req" title="Required">*</span></span>
+                <input name="customer_last_name" maxlength="60" autocomplete="family-name" />
+              </label>
+            </div>
+            <label>
+              <span class="field-label">Email <span class="sq-optional">(optional)</span></span>
+              <input name="customer_email" type="email" placeholder="name@example.com" autocomplete="email" />
+            </label>
+            <label>
+              <span class="field-label">Appointment Note</span>
+              <textarea name="notes" rows="2" placeholder="Optional"></textarea>
+            </label>
+            <!-- Desk defaults — not shown (barbershop, not repair) -->
+            <input type="hidden" name="customer_name" id="staff-customer-name" value="" />
+            <input type="hidden" name="customer_address" id="staff-customer-address" value="{{ shop_address }}" />
+            <input type="hidden" name="customer_notes" value="" />
+            <input type="hidden" name="appliance" id="staff-appliance" value="" />
+            <input type="hidden" name="job_type" id="staff-job-type" value="Service" />
+            <input type="hidden" name="issue" id="staff-issue" value="Barbershop service" />
+            <input type="hidden" name="duration_minutes" id="staff-duration" value="30" />
+            <input type="hidden" name="travel_miles" id="staff-travel" value="0" />
+          </section>
+
+          <p class="error" id="form-error" hidden></p>
+          <div class="form-actions staff-book-actions">
+            <button type="button" class="chip" id="staff-book-back" hidden>Back</button>
+            <button type="button" class="chip" id="cancel-form" data-i18n="common.cancel">Cancel</button>
+            <button type="button" class="cta" id="staff-book-next">Next</button>
+            <button type="submit" class="cta" id="staff-book-submit" hidden>Book Appointment</button>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <dialog id="detail-dialog">
+      <div class="detail">
+        <div class="detail-top">
+          <div class="detail-top-copy">
+            <p class="eyebrow" id="detail-eyebrow">Appointment</p>
+            <h3 id="detail-title">Appointment</h3>
+            <p class="drawer-day" id="detail-day"></p>
+          </div>
+        </div>
+
+        <div id="detail-view">
+          <div id="detail-body"></div>
+          <div class="form-actions detail-actions">
+            <div class="detail-actions-danger">
+              <button type="button" class="danger" id="cancel-appt" data-i18n="detail.cancelJob" data-i18n-title="detail.cancelHint" title="Marks cancelled; frees the time slot">Cancel appointment</button>
+              <button type="button" class="danger" id="delete-appt" data-i18n="detail.deleteJob" data-i18n-title="detail.deleteHint" title="Permanently removes this appointment">Delete</button>
+            </div>
+            <div class="detail-actions-right">
+              <button type="button" class="chip" id="show-on-map" data-i18n="detail.showOnMap" hidden>
+                Show on map
+              </button>
+              <button type="button" class="chip" id="invoice-from-detail" data-label="invoice">Invoice</button>
+              <button type="button" class="chip" id="edit-appt" data-i18n="common.edit">Edit</button>
+              <button type="button" class="cta" id="close-detail" data-i18n="common.close">Close</button>
+            </div>
+          </div>
+        </div>
+
+        <form id="edit-form" class="form detail-edit" hidden>
+          <p class="req-legend"><span class="req" aria-hidden="true">*</span> <span data-i18n="booking.reqLegend">Indicates A Required Field</span></p>
+          <section>
+            <h3 data-i18n="booking.customer">Customer</h3>
+            <label><span class="field-label"><span data-i18n="booking.phone">Phone</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span> <input name="customer_phone" type="tel" required placeholder="xxx-xxx-xxxx" autocomplete="tel" data-i18n-placeholder="booking.phonePh" /></label>
+            <label><span class="field-label"><span data-i18n="common.name">Name</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span> <input name="customer_name" required placeholder="Full Name" data-i18n-placeholder="booking.namePh" /></label>
+            <label><span class="field-label" data-i18n="common.email">Email</span> <input name="customer_email" type="email" autocomplete="email" data-i18n-placeholder="booking.emailPh" /></label>
+            <label><span class="field-label"><span data-i18n="common.address">Address</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span> <input name="customer_address" required placeholder="Street Address" autocomplete="street-address" data-i18n-placeholder="booking.addressPh" /></label>
+            <label><span class="field-label" data-i18n="booking.accessNotes">Access Notes</span> <textarea name="customer_notes" rows="2" data-i18n-placeholder="booking.accessPh"></textarea></label>
+          </section>
+
+          <section>
+            <h3 data-i18n="booking.job">Job</h3>
+            <div class="grid-2">
+              <label>
+                <span class="field-label"><span data-i18n="booking.appliance">Appliance</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span>
+                <select name="appliance" required>
+                  <option value="" disabled data-i18n="booking.selectAppliance">Select appliance…</option>
+                  <option value="Washer" data-i18n="appliance.washer">Washer</option>
+                  <option value="Dryer" data-i18n="appliance.dryer">Dryer</option>
+                  <option value="Refrigerator" data-i18n="appliance.refrigerator">Refrigerator</option>
+                  <option value="Dishwasher" data-i18n="appliance.dishwasher">Dishwasher</option>
+                  <option value="Oven / Range" data-i18n="appliance.oven">Oven / Range</option>
+                  <option value="Microwave" data-i18n="appliance.microwave">Microwave</option>
+                  <option value="Ice Maker" data-i18n="appliance.iceMaker">Ice Maker</option>
+                  <option value="Garbage Disposal" data-i18n="appliance.garbageDisposal">Garbage Disposal</option>
+                  <option value="Other" data-i18n="appliance.other">Other</option>
+                </select>
+              </label>
+              <label>
+                <span class="field-label"><span data-i18n="booking.jobType">Job Type</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span>
+                <select name="job_type" required>
+                  <option value="" disabled data-i18n="booking.selectJobType">Select Job Type…</option>
+                  <option value="Diagnose" data-i18n="jobType.diagnose">Diagnose (1 hr)</option>
+                  <option value="Repair" data-i18n="jobType.repair">Repair (2 hr)</option>
+                  <option value="Replacement" data-i18n="jobType.replacement">Replacement (1 hr)</option>
+                  <option value="Follow-up" data-i18n="jobType.followup">Follow-up (1 hr)</option>
+                  <option value="Other" data-i18n="jobType.other">Other (1 hr)</option>
+                </select>
+              </label>
+            </div>
+            <label><span class="field-label"><span data-i18n="booking.issue">Issue</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span> <textarea name="issue" rows="3" required data-i18n-placeholder="booking.issuePh"></textarea></label>
+            <label><span class="field-label" data-i18n="common.notes">Notes</span> <input name="notes" data-i18n-placeholder="booking.notesPh" /></label>
+            <label>
+              <span class="field-label" data-i18n="common.status">Status</span>
+              <select name="status" required>
+                <option value="scheduled" data-i18n="status.scheduled">Scheduled</option>
+                <option value="confirmed" data-i18n="status.confirmed">Confirmed</option>
+                <option value="completed" data-i18n="status.completed">Completed</option>
+                <option value="cancelled" data-i18n="status.cancelled">Cancelled</option>
+              </select>
+            </label>
+          </section>
+
+          <section class="schedule-section">
+            <h3 data-i18n="booking.schedule">Schedule</h3>
+            <label class="schedule-date">
+              <span class="field-label"><span data-i18n="common.date">Date</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span>
+              <input name="edit_day" id="edit-day" type="date" required />
+            </label>
+            <div class="schedule-when">
+              <label>
+                <span class="field-label" data-i18n="booking.duration">Duration (minutes)</span>
+                <input name="duration_minutes" type="number" min="30" max="240" step="15" placeholder="Auto" data-i18n-placeholder="booking.durationPh" />
+              </label>
+              <label>
+                <span class="field-label" data-i18n="booking.travel">Travel (miles)</span>
+                <input name="travel_miles" type="number" min="0" max="70" step="1" placeholder="Auto" data-i18n-placeholder="booking.travelPh" />
+              </label>
+            </div>
+            <div class="slots-bar">
+              <span id="edit-slots-label">Day Slots</span>
+              <div class="slots-bar-actions">
+                <button type="button" class="chip toggle-chip active" id="edit-slots-available-only" aria-pressed="true" title="Hide Blocked Times" data-i18n="booking.availableOnly" data-i18n-title="booking.hideBlocked">Available Only</button>
+                <button type="button" class="chip" id="edit-view-tech-day" data-i18n="booking.dayView">Day View</button>
+                <button type="button" class="chip" id="edit-refresh-slots" data-label="refresh">Refresh</button>
+              </div>
+            </div>
+            <p class="slots-summary" id="edit-slots-summary" hidden></p>
+            <div class="slots" id="edit-slots"></div>
+            <input type="hidden" name="starts_at" id="edit-starts-at" required />
+            <p class="picked" id="edit-selected-slot">No Slot Selected</p>
+            <label class="tech-field">
+              <span class="field-label"><span data-i18n="booking.technician">Barber</span> <span class="req" title="Required" data-i18n-title="common.required">*</span></span>
+              <select name="technician_id" id="edit-tech-select" required></select>
+              <span class="field-hint" id="edit-tech-hint" data-i18n="booking.editTechHint">Change barber to filter slots; grey = conflict or travel.</span>
+            </label>
+            <div class="tech-suggest" id="edit-tech-suggest" hidden>
+              <div class="tech-suggest-copy">
+                <strong id="edit-tech-suggest-title" data-i18n="booking.suggestedTech">Suggested Barber</strong>
+                <span id="edit-tech-suggest-reason"></span>
+              </div>
+              <button type="button" class="chip" id="edit-tech-suggest-use" data-i18n="booking.useSuggestion">Use Suggestion</button>
+            </div>
+          </section>
+
+          <p class="error" id="edit-error" hidden></p>
+          <div class="form-actions detail-actions">
+            <button type="button" class="danger" id="delete-appt-edit" data-i18n="detail.deleteJob" data-i18n-title="detail.deleteHint" title="Permanently removes this appointment">Delete</button>
+            <div class="detail-actions-right">
+              <button type="button" class="chip" id="cancel-edit" data-i18n="common.cancel">Cancel</button>
+              <button type="submit" class="cta" data-i18n="booking.saveChanges">Save changes</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="detail-invoice" class="detail-invoice" hidden>
+          <div class="form-actions detail-invoice-bar">
+            <button type="button" class="chip" id="detail-invoice-back" data-i18n="detail.backFromInvoice">Back to appointment</button>
+            <button type="button" class="cta" id="detail-invoice-close" data-i18n="common.close">Close</button>
+          </div>
+          <div id="detail-invoice-host" class="detail-invoice-host"></div>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="tech-day-popover" class="tech-day-popover" hidden>
+      <div class="tech-day-panel">
+        <div class="tech-day-top">
+          <div>
+            <p class="eyebrow" data-i18n="techDay.eyebrow">Barber Day</p>
+            <h2 id="tech-day-title">Day calendar</h2>
+          </div>
+          <button type="button" class="icon" id="close-tech-day" aria-label="Close Day View" data-i18n-aria="techDay.close">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <p class="tech-day-meta" id="tech-day-meta"></p>
+        <div class="tech-day-toolbar">
+          <button type="button" class="chip toggle-chip active" id="tech-day-available-only" aria-pressed="true" title="Hide Blocked Times" data-i18n="booking.availableOnly" data-i18n-title="booking.hideBlocked">Available Only</button>
+          <span class="tech-day-open-count" id="tech-day-open-count"></span>
+        </div>
+        <div class="tech-day-split">
+          <div id="tech-day-body" class="tech-day-body"></div>
+          <aside class="tech-day-travel" aria-label="Travel and route for all barbers" data-i18n-aria="techDay.travelAriaAll">
+            <div class="tech-day-travel-head">
+              <div class="tech-day-travel-head-row">
+                <h3 data-i18n="techDay.travelRoute">Day Stops</h3>
+              </div>
+              <p id="tech-day-travel-summary" class="tech-day-travel-summary"></p>
+            </div>
+            <ol id="tech-day-stops" class="tech-day-stops"></ol>
+          </aside>
+        </div>
+        <p class="field-hint tech-day-hint" data-i18n="techDay.hint">Click an open slot to select it. Close anytime — booking stays open.</p>
+      </div>
+    </div>
+
+    <div id="board-focus" class="board-focus" hidden aria-hidden="true">
+      <div class="board-focus-scrim" id="board-focus-scrim"></div>
+      <div
+        class="board-focus-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="board-focus-title"
+      >
+        <header class="board-focus-top">
+          <h2 id="board-focus-title" data-i18n="board.focusTitle">Calendar</h2>
+          <button type="button" class="board-focus-done" id="board-focus-done" data-i18n="common.done">
+            Done
+          </button>
+        </header>
+        <div class="board-focus-scroll" id="board-focus-scroll"></div>
+      </div>
+    </div>
+
+    <dialog id="invoice-send-dialog" aria-labelledby="invoice-send-title">
+      <div class="invoice-send-sheet">
+        <div class="invoice-send-top">
+          <div class="invoice-send-copy">
+            <p class="eyebrow" id="invoice-send-eyebrow" data-i18n="invoice.sendEyebrow">Send invoice</p>
+            <h2 id="invoice-send-title">Send</h2>
+          </div>
+          <button type="button" class="icon" id="invoice-send-close" data-i18n-aria="common.close" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <form id="invoice-send-form" class="form invoice-send-form">
+          <label id="invoice-send-dest-wrap">
+            <span id="invoice-send-dest-label" data-i18n="invoice.sendToPhone">Phone</span>
+            <input type="text" id="invoice-send-dest" required autocomplete="off" />
+          </label>
+          <p class="field-hint" id="invoice-send-hint"></p>
+          <p class="error" id="invoice-send-error" hidden></p>
+          <div class="form-actions">
+            <button type="button" class="chip" id="invoice-send-cancel" data-i18n="common.cancel">Cancel</button>
+            <button type="submit" class="cta" id="invoice-send-submit" data-i18n="invoice.send">Send</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog id="availability-day-sheet" aria-labelledby="availability-day-sheet-title">
+      <div class="availability-day-sheet">
+        <div class="availability-day-sheet-top">
+          <div class="availability-day-sheet-copy">
+            <p class="eyebrow" data-i18n="availability.daySheetEyebrow">Block time</p>
+            <h2 id="availability-day-sheet-title">Day</h2>
+            <p class="availability-day-sheet-tech" id="availability-day-sheet-tech"></p>
+          </div>
+          <button type="button" class="icon" id="availability-day-sheet-close" data-i18n-aria="common.close" aria-label="Close">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <div class="availability-day-sheet-existing" id="availability-day-sheet-blocks" hidden></div>
+        <form id="availability-day-sheet-form" class="form availability-day-sheet-form">
+          <div class="availability-time-row">
+            <label>
+              <span data-i18n="availability.blockStart">From</span>
+              <input type="time" id="availability-day-sheet-from" value="12:00" required />
+            </label>
+            <label>
+              <span data-i18n="availability.blockEnd">To</span>
+              <input type="time" id="availability-day-sheet-to" value="14:00" required />
+            </label>
+          </div>
+          <label>
+            <span data-i18n="availability.reason">Reason</span>
+            <input type="text" id="availability-day-sheet-reason" maxlength="200" data-i18n-placeholder="availability.reasonPh" placeholder="PTO, shop closed…" />
+          </label>
+          <div class="form-actions">
+            <button type="button" class="chip" id="availability-day-sheet-cancel" data-i18n="common.cancel">Cancel</button>
+            <button type="submit" class="cta" data-i18n="availability.addBlock">Add block</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+
+    <div id="app-toast" class="app-toast" hidden role="status" aria-live="polite"></div>
+
+    <dialog class="auth-dialog" id="change-password-dialog">
+      <form method="dialog" id="change-password-form" class="auth-dialog-form">
+        <h3 data-i18n="auth.changePasswordTitle">Change password</h3>
+        <label>
+          <span data-i18n="auth.currentPassword">Current password</span>
+          <input type="password" id="change-pw-current" required maxlength="200" autocomplete="current-password" />
+        </label>
+        <label>
+          <span data-i18n="auth.newPassword">New password</span>
+          <input type="password" id="change-pw-new" required minlength="6" maxlength="200" autocomplete="new-password" />
+        </label>
+        <p class="login-error" id="change-pw-error" hidden role="alert"></p>
+        <div class="form-actions">
+          <button type="button" class="chip" id="change-pw-cancel" data-i18n="common.cancel">Cancel</button>
+          <button type="submit" class="cta" data-i18n="auth.savePassword">Save password</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script src="/static/phone-format.js?v=2"></script>
+    <script src="/static/app.js?v=196"></script>
+
+  </body>
+</html>
